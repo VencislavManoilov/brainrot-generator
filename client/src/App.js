@@ -4,8 +4,9 @@ import './App.css';
 function App() {
   const [selectedImages, setSelectedImages] = useState([]);
   const [combinedImage, setCombinedImage] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  // const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [currentStep, setCurrentStep] = useState(0);
 
   // Sample image URLs - replace with your actual images
   const images = [
@@ -22,24 +23,29 @@ function App() {
   ];
 
   const handleImageClick = (index) => {
-    if (selectedImages.includes(index)) {
-      // Deselect if already selected
-      setSelectedImages(selectedImages.filter(i => i !== index));
-    } else if (selectedImages.length < 2) {
-      // Select if less than 2 are already selected
-      setSelectedImages([...selectedImages, index]);
+    // In step 0, we're selecting the first image
+    if (currentStep === 0) {
+      setSelectedImages([index]);
+      setCurrentStep(1);
+    } 
+    // In step 1, we're selecting the second image
+    else if (currentStep === 1) {
+      if (selectedImages.includes(index)) {
+        // Clicking the same image deselects it
+        setSelectedImages(selectedImages.filter(i => i !== index));
+      } else {
+        // Add as second image or replace the existing second one
+        setSelectedImages([selectedImages[0], index]);
+      }
     }
   };
 
-  const handleCombine = async () => {
-    if (selectedImages.length !== 2) {
-      alert('Please select exactly 2 images to combine');
-      return;
-    }
+  const handleCombineClick = async () => {
+    if (selectedImages.length !== 2) return;
     
-    setIsLoading(true);
+    setCurrentStep(2); // Move to loading step
+    // setIsLoading(true);
     setError(null);
-    setCombinedImage(null);
     
     try {
       const formData = new URLSearchParams();
@@ -61,61 +67,157 @@ function App() {
       
       const data = await response.json();
       setCombinedImage(data.imageUrl);
+      setCurrentStep(3); // Move to result step
     } catch (err) {
       console.error('Error combining images:', err);
       setError('Failed to combine images. Please try again.');
+      setCurrentStep(1); // Go back to selection step on error
     } finally {
-      setIsLoading(false);
+      // setIsLoading(false);
     }
   };
 
+  const handleBackClick = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+      
+      // If going back from step 2 (second image), remove second selection
+      if (currentStep === 2 && selectedImages.length === 2) {
+        setSelectedImages([selectedImages[0]]);
+      }
+    }
+  };
+
+  const handleNextClick = () => {
+    if (currentStep < 3) {
+      if (currentStep === 1 && selectedImages.length === 2) {
+        handleCombineClick();
+      } else if (currentStep === 0 && selectedImages.length === 1) {
+        setCurrentStep(1);
+      }
+    }
+  };
+
+  const handleRestart = () => {
+    setSelectedImages([]);
+    setCombinedImage(null);
+    setCurrentStep(0);
+    setError(null);
+  };
+
+  // Render the image grid for selection
+  const renderImageGrid = () => (
+    <div className="image-grid">
+      {images.map((src, index) => (
+        <div
+          key={index}
+          className={`image-container ${selectedImages.includes(index) ? 'selected' : ''}`}
+          onClick={() => handleImageClick(index)}
+        >
+          <img src={src} alt={`Selection option ${index + 1}`} />
+          {selectedImages.includes(index) && (
+            <div className="selection-indicator">
+              {selectedImages.indexOf(index) + 1}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+
   return (
     <div className="app-container">
-      <h1>Brain Rot Generator</h1>
-      <div className="image-grid">
-        {images.map((src, index) => (
-          <div
-            key={index}
-            className={`image-container ${selectedImages.includes(index) ? 'selected' : ''}`}
-            onClick={() => handleImageClick(index)}
-          >
-            <img src={src} alt="" />
-            {selectedImages.includes(index) && (
-              <div className="selection-indicator">
-                {selectedImages.indexOf(index) + 1}
-              </div>
-            )}
-          </div>
+      <h1 className="app-title">Brain Rot Generator</h1>
+      
+      {/* Step indicator dots */}
+      <div className="step-indicator">
+        {[0, 1, 2, 3].map((step) => (
+          <div 
+            key={step} 
+            className={`step-dot ${currentStep === step ? 'active' : ''}`}
+          />
         ))}
       </div>
-      
-      <button 
-        className="combine-button" 
-        onClick={handleCombine} 
-        disabled={selectedImages.length !== 2 || isLoading}
-      >
-        {isLoading ? 'Combining...' : 'Combine'}
-      </button>
 
-      {isLoading && (
-        <div className="loading-container">
-          <div className="loading-spinner"></div>
-          <p>Generating brain rot...</p>
+      <div className="step-container">
+        {/* Step 1: Select first image */}
+        <div className={`step-content ${currentStep === 0 ? 'active' : ''}`}>
+          <h2 className="step-title">Step 1: Select First Image</h2>
+          {renderImageGrid()}
+          <div className="nav-buttons">
+            <button className="nav-button back" onClick={handleBackClick} disabled={currentStep === 0}>
+              Back
+            </button>
+            <button 
+              className="nav-button" 
+              onClick={handleNextClick} 
+              disabled={selectedImages.length < 1}
+            >
+              Next
+            </button>
+          </div>
         </div>
-      )}
 
-      {error && (
-        <div className="error-message">
-          {error}
+        {/* Step 2: Select second image */}
+        <div className={`step-content ${currentStep === 1 ? 'active' : ''}`}>
+          <h2 className="step-title">Step 2: Select Second Image</h2>
+          {renderImageGrid()}
+          <div className="nav-buttons">
+            <button className="nav-button back" onClick={handleBackClick}>
+              Back
+            </button>
+            <button 
+              className="nav-button" 
+              onClick={handleNextClick} 
+              disabled={selectedImages.length !== 2}
+            >
+              Combine Images
+            </button>
+          </div>
         </div>
-      )}
 
-      {!isLoading && combinedImage && (
-        <div className="result-container">
-          <h2>Combined Result</h2>
-          <img src={combinedImage} alt="Combined" className="result-image" />
+        {/* Step 3: Loading state */}
+        <div className={`step-content ${currentStep === 2 ? 'active' : ''}`}>
+          <div className="loading-container">
+            <div className="preview-container">
+              {selectedImages.length > 0 && (
+                <img 
+                  src={images[selectedImages[0]]} 
+                  alt="First selection" 
+                  className="preview-image" 
+                />
+              )}
+              <div className="plus-icon">+</div>
+              {selectedImages.length > 1 && (
+                <img 
+                  src={images[selectedImages[1]]} 
+                  alt="Second selection" 
+                  className="preview-image" 
+                />
+              )}
+            </div>
+            <div className="loading-spinner"></div>
+            <p className="loading-text">Generating brain rot... Please wait...</p>
+          </div>
         </div>
-      )}
+
+        {/* Step 4: Result */}
+        <div className={`step-content ${currentStep === 3 ? 'active' : ''}`}>
+          <h2 className="step-title">Combined Result</h2>
+          <div className="result-container">
+            {combinedImage && (
+              <img src={combinedImage} alt="Combined result" className="result-image" />
+            )}
+            <p className="result-message">Brain rot successfully generated!</p>
+            <button className="nav-button restart-button" onClick={handleRestart}>
+              Start Over
+            </button>
+          </div>
+        </div>
+
+        {/* Error message overlay */}
+        {error && <div className="error-message">{error}</div>}
+      </div>
     </div>
   );
 }
