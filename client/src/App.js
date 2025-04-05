@@ -105,6 +105,7 @@ function App() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': localStorage.getItem('token'),
         },
         body: formData.toString(),
       });
