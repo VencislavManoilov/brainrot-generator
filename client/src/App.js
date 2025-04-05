@@ -100,7 +100,7 @@ function App() {
       formData.append('image1', images[selectedImages[0]]);
       formData.append('image2', images[selectedImages[1]]);
       
-      const response = await fetch('http://localhost:8080/generate', {
+      const response = await fetch(URL+'/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
@@ -230,7 +230,7 @@ function App() {
             <div className="preview-container">
               {selectedImages.length > 0 && (
                 <img 
-                  src={images[selectedImages[0]]} 
+                  src={"/images/"+images[selectedImages[0]]} 
                   alt="First selection" 
                   className="preview-image" 
                 />
@@ -238,7 +238,7 @@ function App() {
               <div className="plus-icon">+</div>
               {selectedImages.length > 1 && (
                 <img 
-                  src={images[selectedImages[1]]} 
+                  src={"/images/"+images[selectedImages[1]]} 
                   alt="Second selection" 
                   className="preview-image" 
                 />
