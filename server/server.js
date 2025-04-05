@@ -47,7 +47,7 @@ app.get("/me/status", Authorization, (req, res) => {
 })
 
 // Image generation endpoint
-app.post("/generate", async (req, res) => {
+app.post("/generate", Authorization, async (req, res) => {
     try {
         const { image1, image2 } = req.body;
         
