@@ -6,6 +6,7 @@ const cors = require("cors");
 const path = require("path");
 const FormData = require("form-data");
 const sharp = require("sharp"); // Add sharp for image processing
+const Authorization = require("./middleware/Authorization.js"); // Import the Authorization middleware
 
 const PORT = 8080;
 
@@ -25,6 +26,25 @@ app.use(express.urlencoded({ extended: true }));
 app.get("/", (req, res) => {
     res.status(200).json({ version: "1.0.0", message: "Welcome to branrot generator api!" })
 });
+
+app.post("/login", (req, res) => {
+    const { password } = req.body;
+    if(password === process.env.PASSWORD) {
+        res.status(200).json({ 
+            message: "Login successful",
+            token: process.env.TOKEN
+        });
+    } else {
+        res.status(401).json({ error: "Invalid password" });
+    }
+})
+
+app.get("/me/status", Authorization, (req, res) => {
+    return res.status(200).json({
+        message: "You are logged in",
+        status: "ok"
+    });
+})
 
 // Image generation endpoint
 app.post("/generate", async (req, res) => {
