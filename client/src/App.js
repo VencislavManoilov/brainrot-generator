@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import './App.css';
 
+const URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+
 function App() {
   const [selectedImages, setSelectedImages] = useState([]);
   const [combinedImage, setCombinedImage] = useState(null);
@@ -31,7 +33,7 @@ function App() {
       const token = localStorage.getItem('token');
       if(token) {
         try {
-          const response = await axios.get('http://localhost:8080/me/status', {
+          const response = await axios.get(URL+"/me/status", {
             headers: {
               'Authorization': token,
             },
@@ -55,7 +57,7 @@ function App() {
 
   const handleLogin = async (password) => {
     try {
-      const response = await axios.post('http://localhost:8080/login', { password });
+      const response = await axios.post(URL+"/login", { password });
       if (response.status === 200) {
         localStorage.setItem('token', response.data.token);
         setIsLoggedIn(true);
