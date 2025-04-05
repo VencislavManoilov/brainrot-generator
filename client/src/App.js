@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import axios from 'axios';
 import './App.css';
 
 function App() {
@@ -7,6 +8,7 @@ function App() {
   // const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [currentStep, setCurrentStep] = useState(0);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   // Sample image URLs - replace with your actual images
   const images = [
@@ -21,6 +23,50 @@ function App() {
     'http://images.devman.site/tripi_tropi.png',
     'http://images.devman.site/tung_sahur.png',
   ];
+
+  useEffect(() => {
+    // Simulate a login check
+    const checkLoginStatus = async () => {
+      // Replace with actual login logic
+      const token = localStorage.getItem('token');
+      if(token) {
+        try {
+          const response = await axios.get('http://localhost:8080/me/status', {
+            headers: {
+              'Authorization': token,
+            },
+          });
+          if (response.status === 200) {
+            setIsLoggedIn(true);
+          } else {
+            setIsLoggedIn(false);
+          }
+        } catch(error) {
+          console.log('Error checking login status:', error);
+          setIsLoggedIn(false);
+        }
+      } else {
+        setIsLoggedIn(false);
+      }
+    };
+
+    checkLoginStatus();
+  }, []);
+
+  const handleLogin = async (password) => {
+    try {
+      const response = await axios.post('http://localhost:8080/login', { password });
+      if (response.status === 200) {
+        localStorage.setItem('token', response.data.token);
+        setIsLoggedIn(true);
+      } else {
+        setError('Invalid password');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setError('Login failed. Please try again.');
+    }
+  };
 
   const handleImageClick = (index) => {
     // In step 0, we're selecting the first image
@@ -125,7 +171,7 @@ function App() {
     </div>
   );
 
-  return (
+  return isLoggedIn ? (
     <div className="app-container">
       <h1 className="app-title">Brain Rot Generator</h1>
       
@@ -218,6 +264,22 @@ function App() {
         {/* Error message overlay */}
         {error && <div className="error-message">{error}</div>}
       </div>
+    </div>
+  ) : (
+    <div className="login-container">
+      <h1 className="login-title">Login Required</h1>
+      <input
+        type="password"
+        placeholder="Enter password"
+        className="login-input"
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            handleLogin(e.target.value);
+          }
+        }}
+      />
+      <button className="login-button" onClick={() => handleLogin(document.querySelector('.login-input').value)}>Login</button>
+      {error && <div className="error-message">{error}</div>}
     </div>
   );
 }
