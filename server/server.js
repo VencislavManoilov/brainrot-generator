@@ -75,22 +75,14 @@ app.post("/generate", async (req, res) => {
 
         // Get or download image1
         if (!fs.existsSync(image1Path)) {
-            const image1Url = `https://images.devman.site/${image1}`;
-            const image1Response = await axios.get(image1Url, { responseType: 'arraybuffer' });
-            image1Buffer = image1Response.data;
-            // Save image for future use
-            fs.writeFileSync(image1Path, Buffer.from(image1Buffer));
+            return res.status(404).json({ error: `Image ${image1} not found` });
         } else {
             image1Buffer = fs.readFileSync(image1Path);
         }
 
         // Get or download image2
         if (!fs.existsSync(image2Path)) {
-            const image2Url = `https://images.devman.site/${image2}`;
-            const image2Response = await axios.get(image2Url, { responseType: 'arraybuffer' });
-            image2Buffer = image2Response.data;
-            // Save image for future use
-            fs.writeFileSync(image2Path, Buffer.from(image2Buffer));
+            return res.status(404).json({ error: `Image ${image2} not found` });
         } else {
             image2Buffer = fs.readFileSync(image2Path);
         }
