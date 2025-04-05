@@ -14,16 +14,16 @@ function App() {
 
   // Sample image URLs - replace with your actual images
   const images = [
-    'http://images.devman.site/boberito_bondito.png',
-    'http://images.devman.site/bombardino_crocodilo.png',
-    'http://images.devman.site/bombini_guzini.png',
-    'http://images.devman.site/brr_brr_patapim.png',
-    'http://images.devman.site/gangster_footera.png',
-    'http://images.devman.site/glordo.png',
-    'http://images.devman.site/lirili_larilla.png',
-    'http://images.devman.site/tralalero_tralala.png',
-    'http://images.devman.site/tripi_tropi.png',
-    'http://images.devman.site/tung_sahur.png',
+    'boberito_bondito.png',
+    'bombardino_crocodilo.png',
+    'bombini_guzini.png',
+    'brr_brr_patapim.png',
+    'gangster_footera.png',
+    'glordo.png',
+    'lirili_larilla.png',
+    'tralalero_tralala.png',
+    'tripi_tropi.png',
+    'tung_sahur.png',
   ];
 
   useEffect(() => {
@@ -97,9 +97,8 @@ function App() {
     
     try {
       const formData = new URLSearchParams();
-      const getFileName = (url) => url.substring(url.lastIndexOf('/') + 1);
-      formData.append('image1', getFileName(images[selectedImages[0]]));
-      formData.append('image2', getFileName(images[selectedImages[1]]));
+      formData.append('image1', images[selectedImages[0]]);
+      formData.append('image2', images[selectedImages[1]]);
       
       const response = await fetch('http://localhost:8080/generate', {
         method: 'POST',
@@ -163,7 +162,7 @@ function App() {
           className={`image-container ${selectedImages.includes(index) ? 'selected' : ''}`}
           onClick={() => handleImageClick(index)}
         >
-          <img src={src} alt={`Selection option ${index + 1}`} />
+          <img src={"/images/" + src} alt={`Selection option ${index + 1}`} />
           {selectedImages.includes(index) && (
             <div className="selection-indicator">
               {selectedImages.indexOf(index) + 1}
