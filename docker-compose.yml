@@ -1,0 +1,23 @@
+version: '3'
+
+services:
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - server
+    restart: always
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./server/public/images:/usr/src/app/public/images
+      - ./server/.env:/usr/src/app/.env
+    restart: always
